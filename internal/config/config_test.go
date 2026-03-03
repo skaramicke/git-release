@@ -17,6 +17,8 @@ func makeRepo(t *testing.T) string {
 	dir := t.TempDir()
 	cmds := [][]string{
 		{"git", "init"},
+		{"git", "config", "user.email", "test@test.com"},
+		{"git", "config", "user.name", "Test"},
 		{"git", "commit", "--allow-empty", "-m", "init"},
 	}
 	for _, args := range cmds {

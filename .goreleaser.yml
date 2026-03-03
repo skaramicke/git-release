@@ -1,0 +1,73 @@
+version: 2
+
+project_name: git-release
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: git-release
+    main: ./cmd/git-release
+    binary: git-release
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: skaramicke
+    name: git-release
+  draft: false
+  prerelease: auto  # marks -rc tags as pre-release automatically
+  name_template: "{{ .Tag }}"
+  footer: |
+    ## Installation
+
+    **macOS / Linux (manual):**
+    ```sh
+    # Replace <os> and <arch> with your platform (e.g. darwin_arm64, linux_amd64)
+    curl -sSL https://github.com/skaramicke/git-release/releases/download/{{ .Tag }}/git-release_{{ .Version }}_<os>_<arch>.tar.gz | tar xz
+    sudo mv git-release /usr/local/bin/
+    ```
+
+    Once installed, `git` will pick it up as `git release`.

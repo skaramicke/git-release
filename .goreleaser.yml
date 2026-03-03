@@ -60,6 +60,7 @@ release:
   draft: false
   prerelease: auto  # marks -rc tags as pre-release automatically
   name_template: "{{ .Tag }}"
+  replace_existing_artifacts: true
   footer: |
     ## Installation
 

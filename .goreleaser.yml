@@ -37,9 +37,6 @@ archives:
     files:
       - README.md
 
-extra_files:
-  - glob: install.sh
-
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256
@@ -64,6 +61,8 @@ release:
   prerelease: auto  # marks -rc tags as pre-release automatically
   name_template: "{{ .Tag }}"
   replace_existing_artifacts: true
+  extra_files:
+    - glob: install.sh
   footer: |
     ## Installation
 

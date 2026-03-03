@@ -21,12 +21,17 @@ problem imperfectly. `git-release` standardises the workflow:
 ## Installation
 
 ```sh
-# Homebrew (once published)
-brew install git-release
+curl -fsSL https://github.com/skaramicke/git-release/releases/latest/download/install.sh | sh
+```
 
-# Manual
-curl -fsSL https://raw.githubusercontent.com/you/git-release/main/install.sh | sh
-# Places git-release in /usr/local/bin — git picks it up as `git release`
+Places `git-release` in `/usr/local/bin` — git picks it up automatically as `git release`.
+
+To install to a different directory: `INSTALL_DIR=~/bin sh <(curl -fsSL ...)`
+
+### Updating
+
+```sh
+git release update
 ```
 
 ---

@@ -37,6 +37,9 @@ archives:
     files:
       - README.md
 
+extra_files:
+  - glob: install.sh
+
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256
@@ -64,11 +67,9 @@ release:
   footer: |
     ## Installation
 
-    **macOS / Linux (manual):**
     ```sh
-    # Replace <os> and <arch> with your platform (e.g. darwin_arm64, linux_amd64)
-    curl -sSL https://github.com/skaramicke/git-release/releases/download/{{ .Tag }}/git-release_{{ .Version }}_<os>_<arch>.tar.gz | tar xz
-    sudo mv git-release /usr/local/bin/
+    curl -fsSL https://github.com/skaramicke/git-release/releases/latest/download/install.sh | sh
     ```
 
     Once installed, `git` will pick it up as `git release`.
+    Keep it up to date with: `git release update`

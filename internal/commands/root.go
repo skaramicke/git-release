@@ -36,6 +36,8 @@ Scopes: patch (default), minor, major`,
 		newStatusCmd(),
 		newLsCmd(),
 		newPrimeCmd(),
+		newUpdateCmd(),
+		newVersionCmd(),
 	)
 
 	return root

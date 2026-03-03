@@ -138,7 +138,7 @@ func CreateAndPushTag(dir, remote, tagName, ref string, sign, dryRun bool) error
 		return &GitError{cmd: "git tag", output: string(out), err: err}
 	}
 
-	push := exec.Command("git", "push", remote, "refs/tags/"+tagName)
+	push := exec.Command("git", "push", "--no-verify", remote, "refs/tags/"+tagName)
 	push.Dir = dir
 	if out, err := push.CombinedOutput(); err != nil {
 		return &GitError{cmd: "git push", output: string(out), err: err}

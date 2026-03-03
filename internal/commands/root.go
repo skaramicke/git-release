@@ -35,6 +35,7 @@ Scopes: patch (default), minor, major`,
 		newStageCmd(),
 		newStatusCmd(),
 		newLsCmd(),
+		newPrimeCmd(),
 	)
 
 	return root

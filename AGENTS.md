@@ -1,5 +1,15 @@
 # Agent Instructions
 
+## Maintaining This File
+
+**This file is your primary context.** Sessions are recycled (killed and restarted) rather than compacted, so every new session starts fresh with only this file, beads, and Claude's memories. If this file is wrong or stale, you will do the wrong thing.
+
+**Rules:**
+- When you change architecture, add commands, rename files, or shift patterns — update this file in the same commit
+- Keep it concise. Remove outdated sections rather than accumulating. Target <100 lines of prose
+- Focus on: what the project IS, how to build/test, key patterns, and gotchas
+- Do NOT add session-specific notes, TODOs, or in-progress work here (use beads for that)
+
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
 
 ## Quick Reference

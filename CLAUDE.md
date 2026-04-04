@@ -44,11 +44,10 @@ Via `git config` (keys under `release.*`): `tagPrefix`, `remote`, `releaseBranch
 This repo uses **beads** (`bd`) for issue tracking — not GitHub Issues, not markdown files.
 
 ```bash
-bd ready                    # Find available work
-bd show <id>                # View issue details
-bd update <id> --status=in_progress  # Claim work
-bd close <id>               # Complete work
-bd sync --flush-only        # Export to JSONL before ending session
+grit tasks ready                    # Find available work
+grit tasks show <id>                # View issue details
+grit tasks update <id> --status=in_progress  # Claim work
+grit tasks close <id>               # Complete work
 ```
 
 Do NOT use TodoWrite, TaskCreate, or markdown task lists. Always create a beads issue before writing code.
@@ -57,7 +56,6 @@ Do NOT use TodoWrite, TaskCreate, or markdown task lists. Always create a beads 
 
 Before ending a session, run:
 ```bash
-bd sync --flush-only
 ```
 
 Note: No git remote is configured — issues are saved locally only.

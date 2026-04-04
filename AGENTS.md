@@ -10,16 +10,15 @@
 - Focus on: what the project IS, how to build/test, key patterns, and gotchas
 - Do NOT add session-specific notes, TODOs, or in-progress work here (use beads for that)
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **grit tasks** for issue tracking.
 
 ## Quick Reference
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
+grit tasks ready              # Find available work
+grit tasks show <id>          # View issue details
+grit tasks update <id> --status in_progress  # Claim work
+grit tasks close <id>         # Complete work
 ```
 
 ## Landing the Plane (Session Completion)
@@ -34,7 +33,6 @@ bd sync               # Sync with git
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```

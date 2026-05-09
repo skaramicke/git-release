@@ -1,2 +1,6 @@
 /git-release
 dist/
+
+.grit-cache
+.beads/
+.mcp.json

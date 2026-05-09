@@ -61,6 +61,15 @@ func runStage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	// Atomicity guard: if HEAD is already tagged by the in-flight RC, refuse
+	// rather than push a new RC tag at the same commit. Catches the race
+	// where two `git release stage` callers on the same HEAD would otherwise
+	// produce consecutive RC tags pointing at one source commit.
+	if err := refuseIfHeadAlreadyStaged(ctx); err != nil {
+		ctx.print.Errorf("%v", err)
+		return err
+	}
+
 	if err := git.CreateAndPushTag(ctx.dir, ctx.cfg.Remote, tagName, "HEAD", ctx.cfg.SignTags, false); err != nil {
 		ctx.print.Errorf("failed to create/push tag: %v", err)
 		return err
@@ -77,4 +86,30 @@ func runStage(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// refuseIfHeadAlreadyStaged returns an error if the in-flight RC already
+// points at HEAD on the remote. A transient remote-read failure is
+// non-fatal — the subsequent push will surface real errors.
+func refuseIfHeadAlreadyStaged(ctx *runContext) error {
+	if ctx.state.InFlightRC == nil {
+		return nil
+	}
+	inFlightTag := ctx.state.InFlightRC.String(ctx.cfg.TagPrefix)
+	inFlightCommit, err := git.ResolveRemoteRef(ctx.dir, ctx.cfg.Remote, "refs/tags/"+inFlightTag)
+	if err != nil {
+		return nil
+	}
+	headCommit, err := git.ResolveRef(ctx.dir, "HEAD")
+	if err != nil {
+		return fmt.Errorf("resolving HEAD: %w", err)
+	}
+	if inFlightCommit != headCommit {
+		return nil
+	}
+	short := headCommit
+	if len(short) > 7 {
+		short = short[:7]
+	}
+	return fmt.Errorf("HEAD (%s) is already tagged as %s; commit something or run `git release` to promote", short, inFlightTag)
 }

@@ -2,6 +2,7 @@
 package git
 
 import (
+	"fmt"
 	"os/exec"
 	"strings"
 	"time"
@@ -156,6 +157,28 @@ func ResolveRef(dir, ref string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+// ResolveRemoteRef returns the commit hash that a ref points at on the
+// remote, querying via `git ls-remote` (no local fetch required). Used to
+// catch concurrent-stage races where the in-flight RC might already point
+// at HEAD before we attempt to push a new RC tag at the same commit.
+func ResolveRemoteRef(dir, remote, ref string) (string, error) {
+	c := exec.Command("git", "ls-remote", remote, ref)
+	c.Dir = dir
+	out, err := c.Output()
+	if err != nil {
+		return "", err
+	}
+	line := strings.TrimSpace(string(out))
+	if line == "" {
+		return "", fmt.Errorf("ref %q not found on remote %q", ref, remote)
+	}
+	parts := strings.SplitN(line, "\t", 2)
+	if len(parts) < 2 {
+		return "", fmt.Errorf("malformed ls-remote output: %q", line)
+	}
+	return parts[0], nil
 }
 
 // --- helpers ---

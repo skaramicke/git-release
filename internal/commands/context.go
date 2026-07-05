@@ -141,3 +141,23 @@ func confirm(ctx *runContext, prompt, expectedValue string) (bool, error) {
 
 	return input == expectedValue, nil
 }
+
+// pushReleaseBranch pushes the release branch to the remote (fast-forward only)
+// so the commits the tag will point at land on the branch BEFORE the tag is
+// pushed — the fix for a release leaving the remote branch behind its own tag
+// (bridge grit-4h2uo). No-op under --dry-run or release.pushBranch=false. The
+// branch is release.releaseBranch when set, else the current branch.
+func pushReleaseBranch(ctx *runContext) error {
+	if !ctx.cfg.PushBranch || ctx.dryRun {
+		return nil
+	}
+	branch := ctx.cfg.ReleaseBranch
+	if branch == "" {
+		b, err := git.CurrentBranch(ctx.dir)
+		if err != nil {
+			return fmt.Errorf("resolving current branch: %w", err)
+		}
+		branch = b
+	}
+	return git.PushBranch(ctx.dir, ctx.cfg.Remote, branch, false)
+}

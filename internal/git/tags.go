@@ -220,3 +220,22 @@ func parseUnix(s string) int64 {
 	}
 	return n
 }
+
+// PushBranch pushes HEAD to the remote branch, fast-forward only (never forced),
+// so the commits a release tag points at actually land on the remote branch
+// BEFORE the tag is pushed. Without this, `git release` could push a tag built
+// from local-only commits while the remote branch stayed behind — CI that
+// rebuilds an overlay off the remote branch then diverges from the tag
+// (mc-teori bridge grit-4h2uo). A non-fast-forward (the remote branch has
+// commits HEAD lacks) is a hard error: git-release never force-pushes.
+func PushBranch(dir, remote, branch string, dryRun bool) error {
+	if dryRun {
+		return nil
+	}
+	push := exec.Command("git", "push", "--no-verify", remote, "HEAD:refs/heads/"+branch)
+	push.Dir = dir
+	if out, err := push.CombinedOutput(); err != nil {
+		return &GitError{cmd: "git push " + remote + " HEAD:" + branch, output: string(out), err: err}
+	}
+	return nil
+}

@@ -18,6 +18,7 @@ type Config struct {
 	ReleaseBranch string // default: "" (any branch)
 	RequireClean  bool   // default: true
 	SignTags      bool   // default: false
+	PushBranch    bool   // default: true — push the release branch before the tag
 }
 
 // Load reads git-release config from the repo that contains dir.
@@ -37,6 +38,7 @@ func Load(dir string) (*Config, error) {
 	cfg.ReleaseBranch = gitConfigStr(dir, "release.releaseBranch", "")
 	cfg.RequireClean = gitConfigBool(dir, "release.requireClean", true)
 	cfg.SignTags = gitConfigBool(dir, "release.signTags", false)
+	cfg.PushBranch = gitConfigBool(dir, "release.pushBranch", true)
 
 	return cfg, nil
 }

@@ -2,6 +2,7 @@ package git_test
 
 import (
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/skaramicke/git-release/internal/git"
@@ -84,4 +85,69 @@ func TestTagCommitInfo(t *testing.T) {
 	assert.NotEmpty(t, info.Hash)
 	assert.Len(t, info.Hash, 7)
 	assert.False(t, info.Date.IsZero())
+}
+
+func gitOut(t *testing.T, dir string, args ...string) string {
+	t.Helper()
+	c := exec.Command("git", args...)
+	c.Dir = dir
+	out, err := c.CombinedOutput()
+	require.NoError(t, err, string(out))
+	return strings.TrimSpace(string(out))
+}
+
+func gitRun(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	gitOut(t, dir, args...)
+}
+
+// TestPushBranch_FastForwardLandsCommits pins grit-4h2uo: PushBranch must land
+// local-only commits on the remote branch so a later tag never points at
+// commits missing from origin.
+func TestPushBranch_FastForwardLandsCommits(t *testing.T) {
+	remote := t.TempDir()
+	gitRun(t, remote, "init", "--bare")
+	dir := makeRepo(t)
+	gitRun(t, dir, "remote", "add", "origin", remote)
+	branch, err := git.CurrentBranch(dir)
+	require.NoError(t, err)
+
+	// A local commit that isn't on the remote yet.
+	gitRun(t, dir, "commit", "--allow-empty", "-m", "feat: local only")
+	head := gitOut(t, dir, "rev-parse", "HEAD")
+
+	require.NoError(t, git.PushBranch(dir, "origin", branch, false))
+
+	remoteHead := gitOut(t, remote, "rev-parse", "refs/heads/"+branch)
+	assert.Equal(t, head, remoteHead, "PushBranch must land HEAD on the remote branch")
+}
+
+// TestPushBranch_NonFastForwardHardFails: a diverged branch must error, never
+// force — the tool never rewrites remote history.
+func TestPushBranch_NonFastForwardHardFails(t *testing.T) {
+	remote := t.TempDir()
+	gitRun(t, remote, "init", "--bare")
+	dir := makeRepo(t)
+	gitRun(t, dir, "remote", "add", "origin", remote)
+	branch, err := git.CurrentBranch(dir)
+	require.NoError(t, err)
+	require.NoError(t, git.PushBranch(dir, "origin", branch, false))
+
+	// A second clone advances the remote branch.
+	other := t.TempDir()
+	gitRun(t, other, "clone", remote, ".")
+	gitRun(t, other, "config", "user.email", "o@o.com")
+	gitRun(t, other, "config", "user.name", "O")
+	gitRun(t, other, "commit", "--allow-empty", "-m", "remote moved")
+	gitRun(t, other, "push", "origin", "HEAD:"+branch)
+
+	// The original repo commits on top of its now-stale base → non-ff.
+	gitRun(t, dir, "commit", "--allow-empty", "-m", "diverging local")
+	err = git.PushBranch(dir, "origin", branch, false)
+	require.Error(t, err, "a non-fast-forward push must hard-fail, not force")
+}
+
+func TestPushBranch_DryRunNoOp(t *testing.T) {
+	dir := makeRepo(t) // no remote configured
+	require.NoError(t, git.PushBranch(dir, "origin", "main", true), "dry-run must not touch the network")
 }

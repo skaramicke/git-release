@@ -69,6 +69,12 @@ func runRelease(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	// Push the branch before the tag so origin never lags its own tag (grit-4h2uo).
+	if err := pushReleaseBranch(ctx); err != nil {
+		ctx.print.Errorf("failed to push release branch (refusing to tag ahead of it): %v", err)
+		return err
+	}
+
 	if err := git.CreateAndPushTag(ctx.dir, ctx.cfg.Remote, tagName, ref, ctx.cfg.SignTags, false); err != nil {
 		ctx.print.Errorf("failed to create/push tag: %v", err)
 		return err

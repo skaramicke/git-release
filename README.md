@@ -219,6 +219,10 @@ git config release.requireClean true
 
 # GPG-sign tags (default: false)
 git config release.signTags false
+
+# Push the release branch (fast-forward only) before pushing the tag, so the
+# remote branch can never lag its own tag (default: true)
+git config release.pushBranch true
 ```
 
 ---

@@ -55,6 +55,10 @@ jobs:
         run: |
           set -eu
           tag="${GITHUB_REF_NAME}"
+          # goreleaser's {{.Version}} is the tag with the leading `v` stripped,
+          # so the binary reports "0.1.7" for tag v0.1.7. Compare on the bare
+          # form or this check fails on every correctly stamped release.
+          bare="${tag#v}"
           bin="$(find dist -type f -name git-release -path '*linux_amd64*' | head -1)"
           if [ -z "$bin" ]; then
             echo "no linux/amd64 git-release binary found under dist/" >&2
@@ -65,9 +69,9 @@ jobs:
           out="$("$bin" version)"
           echo "$out"
           case "$out" in
-            *"$tag"*) echo "OK: version output carries the tag" ;;
+            *"$bare"*) echo "OK: version output carries the tag" ;;
             *)
-              echo "FAIL: '$bin version' does not contain '$tag'." >&2
+              echo "FAIL: '$bin version' does not contain '$bare'." >&2
               echo "The -X main.version ldflag did not stick — check that the" >&2
               echo "vars in cmd/git-release/main.go still have CONSTANT initialisers." >&2
               exit 1

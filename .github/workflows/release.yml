@@ -11,7 +11,13 @@ permissions:
 jobs:
   release:
     name: GoReleaser
-    runs-on: self-hosted
+    # GitHub-hosted on purpose. This is a PUBLIC repo under a personal account,
+    # so hosted minutes are free and unmetered here. The gronitab self-hosted
+    # pool is registered with RUNNER_SCOPE=org / ORG_NAME=gronitab, so it can
+    # never pick up a job from skaramicke/*: the `runs-on: self-hosted` this
+    # replaces (6ff63bb) would have queued forever, and was never exercised
+    # because no tag was pushed after it landed.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,3 +42,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+
+      # The version stamp is only real if the SHIPPED binary says so. Until
+      # 2026-08-31 cmd/git-release/main.go initialised `version` from a
+      # non-constant expression, so the compiler's package init overwrote the
+      # linker's -X value and every published artifact reported "dev". Nothing
+      # noticed, because a "dev" binary works — it just cannot be identified,
+      # which is exactly what a pinned install needs it to do. This step runs
+      # the artifact that is about to be published and fails the release if the
+      # stamp regresses.
+      - name: Verify the published binary reports its tag
+        run: |
+          set -eu
+          tag="${GITHUB_REF_NAME}"
+          bin="$(find dist -type f -name git-release -path '*linux_amd64*' | head -1)"
+          if [ -z "$bin" ]; then
+            echo "no linux/amd64 git-release binary found under dist/" >&2
+            find dist -type f -name 'git-release*' >&2
+            exit 1
+          fi
+          echo "checking $bin against tag $tag"
+          out="$("$bin" version)"
+          echo "$out"
+          case "$out" in
+            *"$tag"*) echo "OK: version output carries the tag" ;;
+            *)
+              echo "FAIL: '$bin version' does not contain '$tag'." >&2
+              echo "The -X main.version ldflag did not stick — check that the" >&2
+              echo "vars in cmd/git-release/main.go still have CONSTANT initialisers." >&2
+              exit 1
+              ;;
+          esac

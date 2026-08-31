@@ -5,3 +5,4 @@ dist/
 .beads/
 .mcp.json
 .claude/settings.local.json
+/opencode.json

@@ -10,10 +10,16 @@ import (
 
 // These vars are populated by GoReleaser via -ldflags.
 // They live here so the linker path matches: main.version etc.
+//
+// The initializers MUST be string CONSTANTS. `-X main.version=...` patches the
+// variable's initial data, but a non-constant initializer (e.g. `= build.Version`)
+// makes the compiler emit a package init that runs AFTER the linker's patch and
+// overwrites it — which is why every binary built before 2026-08-31 reported
+// "dev". The release workflow now asserts the stamped binary prints its tag.
 var (
-	version = build.Version
-	commit  = build.Commit
-	date    = build.Date
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func main() {
